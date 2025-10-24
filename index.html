@@ -98,14 +98,18 @@ function initPanel(){
   const powerVal = document.getElementById('powerVal');
   const applyBtn = document.getElementById('applyBtn');
 
-  let antennas = [];
+  let antennas = JSON.parse(localStorage.getItem('antennasData')) || [];
   let selectedIndex = null;
 
   // Simula "controllo automatico HDMI/decoder"
-  function checkConnection(a){
+  function checkConnection(){
     const random = Math.random();
-    if(random > 0.8) return 'problem';
-    return Math.random() > 0.3 ? 'online' : 'offline';
+    if(random > 0.85) return 'problem';
+    return Math.random() > 0.25 ? 'online' : 'offline';
+  }
+
+  function saveAntennas(){
+    localStorage.setItem('antennasData', JSON.stringify(antennas));
   }
 
   function renderAntennas(){
@@ -116,11 +120,11 @@ function initPanel(){
       let statoText = 'Non in funzione';
       if(a.status === 'online') statoText = 'Online';
       else if(a.status === 'problem') statoText = '?? Non funzionante';
-
       div.innerHTML = `<span>${a.name} — ${statoText} (Az:${a.az}° | Power:${a.power}%)</span>`;
       div.addEventListener('click', ()=> selectAntenna(i));
       antennaList.appendChild(div);
     });
+    saveAntennas();
   }
 
   function selectAntenna(index){
