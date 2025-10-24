@@ -41,7 +41,7 @@
     }
     .antenna-item.online { border-left: 4px solid #22c55e; }
     .antenna-item.offline { border-left: 4px solid #ef4444; }
-    .antenna-actions { display: flex; gap: 8px; }
+    .antenna-item.problem { border-left: 4px solid #f59e0b; }
     .controls { margin-top: 20px; }
     .controls label { display: block; margin-top: 10px; }
   </style>
@@ -101,26 +101,26 @@ function initPanel(){
   let antennas = [];
   let selectedIndex = null;
 
+  // Simula "controllo automatico HDMI/decoder"
+  function checkConnection(a){
+    const random = Math.random();
+    if(random > 0.8) return 'problem';
+    return Math.random() > 0.3 ? 'online' : 'offline';
+  }
+
   function renderAntennas(){
     antennaList.innerHTML = '';
     antennas.forEach((a, i)=>{
       const div = document.createElement('div');
-      div.className = 'antenna-item ' + (a.online ? 'online' : 'offline');
-      div.innerHTML = `
-        <span>${a.name} — ${a.online ? 'Online' : 'Non in funzione'} (Az:${a.az}° | Power:${a.power}%)</span>
-        <div class="antenna-actions">
-          <button onclick="toggleOnline(${i}, true)">Collega al decoder</button>
-          <button onclick="toggleOnline(${i}, false)">Scollega</button>
-        </div>
-      `;
+      div.className = 'antenna-item ' + a.status;
+      let statoText = 'Non in funzione';
+      if(a.status === 'online') statoText = 'Online';
+      else if(a.status === 'problem') statoText = '?? Non funzionante';
+
+      div.innerHTML = `<span>${a.name} — ${statoText} (Az:${a.az}° | Power:${a.power}%)</span>`;
       div.addEventListener('click', ()=> selectAntenna(i));
       antennaList.appendChild(div);
     });
-  }
-
-  window.toggleOnline = function(index, status){
-    antennas[index].online = status;
-    renderAntennas();
   }
 
   function selectAntenna(index){
@@ -135,7 +135,8 @@ function initPanel(){
   document.getElementById('addAntennaBtn').addEventListener('click', ()=>{
     const name = prompt('Nome nuova antenna:');
     if(!name) return;
-    antennas.push({name, az:0, power:50, online:false});
+    const status = checkConnection();
+    antennas.push({name, az:0, power:50, status});
     renderAntennas();
   });
 
@@ -161,6 +162,14 @@ function initPanel(){
     antennas[selectedIndex].power = Number(power.value);
     renderAntennas();
   });
+
+  // Controllo periodico (simulazione)
+  setInterval(()=>{
+    antennas.forEach(a=>{
+      a.status = checkConnection();
+    });
+    renderAntennas();
+  }, 5000);
 
   renderAntennas();
 }
